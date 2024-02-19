@@ -17,6 +17,8 @@
 #include <assert.h>
 #include <directxcolors.h>
 #include "resource.h"
+#include <d3dcompiler.h>
+
 
 using namespace DirectX;
 
@@ -26,6 +28,11 @@ if (p != NULL) { \
     p = NULL;\
 }
 
+struct Vertex {
+    float x, y, z;
+    COLORREF color;
+};
+
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
@@ -33,13 +40,26 @@ HINSTANCE               g_hInst = nullptr;
 HWND                    g_hWnd = nullptr;
 D3D_DRIVER_TYPE         g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
+
 ID3D11Device* g_pd3dDevice = nullptr;
 ID3D11Device1* g_pd3dDevice1 = nullptr;
+
 ID3D11DeviceContext* g_pImmediateContext = nullptr;
 ID3D11DeviceContext1* g_pImmediateContext1 = nullptr;
+
 IDXGISwapChain* g_pSwapChain = nullptr;
 IDXGISwapChain1* g_pSwapChain1 = nullptr;
+
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
+
+ID3D11Buffer* g_pIndexBuffer = nullptr;
+ID3D11Buffer* g_pVertexBuffer = nullptr;
+
+ID3D11VertexShader* g_pVertexShader = nullptr;
+ID3D11PixelShader* g_pPixelShader = nullptr;
+
+ID3D11InputLayout* g_pInputLayout = nullptr;
+
 UINT g_width;
 UINT g_height;
 UINT WindowWidth = 720;
@@ -51,6 +71,7 @@ UINT WindowHeight = 720;
 //--------------------------------------------------------------------------------------
 HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
 HRESULT InitDevice();
+HRESULT InitScene();
 void CleanupDevice();
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 void Render();
@@ -337,7 +358,11 @@ HRESULT InitDevice()
     vp.TopLeftY = 0;
     g_pImmediateContext->RSSetViewports(1, &vp);
 
-    return S_OK;
+    if (SUCCEEDED(hr)) {
+        hr = InitScene();
+    }
+
+    return hr;
 }
 
 
@@ -352,6 +377,38 @@ void Render()
     g_pImmediateContext->OMSetRenderTargets(1, views, nullptr);
     g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::LightPink);
 
+    D3D11_VIEWPORT vp;
+    vp.TopLeftX = 0;
+    vp.TopLeftY = 0;
+    vp.Width = (FLOAT)g_width;
+    vp.Height = (FLOAT)g_height;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+
+    g_pImmediateContext->RSSetViewports(1, &vp);
+
+    D3D11_RECT rect;
+    rect.left = 0;
+    rect.right = g_width;
+    rect.top = 0;
+    rect.bottom = g_height;
+
+    g_pImmediateContext->RSSetScissorRects(1, &rect);
+
+    g_pImmediateContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+    ID3D11Buffer* vBuffer[] = { g_pVertexBuffer };
+    UINT strides[] = { 16 };
+    UINT offsets[] = { 0 };
+
+    g_pImmediateContext->IASetVertexBuffers(0, 1, vBuffer, strides, offsets);
+    g_pImmediateContext->IASetInputLayout(g_pInputLayout);
+    g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    g_pImmediateContext->VSSetShader(g_pVertexShader, nullptr, 0);
+    g_pImmediateContext->PSSetShader(g_pPixelShader, nullptr, 0);
+    g_pImmediateContext->DrawIndexed(3, 0, 0);
+
+
     HRESULT hr = g_pSwapChain->Present(1, 0);
     assert(SUCCEEDED(hr));
 }
@@ -365,20 +422,32 @@ void CleanupDevice()
     if (g_pImmediateContext) g_pImmediateContext->ClearState();
 
     if (g_pRenderTargetView) g_pRenderTargetView->Release();
+
     if (g_pSwapChain1) g_pSwapChain1->Release();
     if (g_pSwapChain) g_pSwapChain->Release();
+
     if (g_pImmediateContext1) g_pImmediateContext1->Release();
     if (g_pImmediateContext) g_pImmediateContext->Release();
+
     if (g_pd3dDevice1) g_pd3dDevice1->Release();
     if (g_pd3dDevice) g_pd3dDevice->Release();
+
+    if (g_pIndexBuffer) g_pIndexBuffer->Release();
+    if (g_pVertexBuffer) g_pVertexBuffer->Release();
+
+    if (g_pVertexShader) g_pVertexShader->Release();
+    if (g_pPixelShader) g_pPixelShader->Release();
+
+    if (g_pInputLayout) g_pInputLayout->Release();
+    
 }
 
 HRESULT setupBackBuffer() {
-    ID3D11Texture2D* pBackBuffer = NULL;
+    ID3D11Texture2D* pBackBuffer = nullptr;
     HRESULT hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
     assert(SUCCEEDED(hr));
     if (SUCCEEDED(hr)) {
-        hr = g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_pRenderTargetView);
+        hr = g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_pRenderTargetView);
         assert(SUCCEEDED(hr));
 
         SAFE_RELEASE(pBackBuffer);
@@ -402,3 +471,84 @@ bool winResize(UINT width, UINT height) {
     }
     return true;
 }
+
+HRESULT InitScene() {
+    HRESULT hr = S_OK;
+
+    static const Vertex Vertices[] = {
+          {-0.5f, -0.5f, 0.0f, RGB(255, 0, 0)},
+          { 0.5f, -0.5f, 0.0f, RGB(0, 255, 0)},
+          { 0.0f,  0.5f, 0.0f, RGB(0, 0, 255)}
+    };
+
+    static const USHORT Indices[] = {
+        0, 2, 1
+    };
+
+    static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
+      {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+      {"COLOR", 0,  DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0} };
+
+
+    if (SUCCEEDED(hr)) {
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = sizeof(Vertices);
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+        desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA data;
+        data.pSysMem = &Vertices;
+        data.SysMemPitch = sizeof(Vertices);
+        data.SysMemSlicePitch = 0;
+
+        hr = g_pd3dDevice->CreateBuffer(&desc, &data, &g_pVertexBuffer);
+        assert(SUCCEEDED(hr));
+    }
+
+    if (SUCCEEDED(hr)) {
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = sizeof(Indices);
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA data;
+        data.pSysMem = &Indices;
+        data.SysMemPitch = sizeof(Indices);
+        data.SysMemSlicePitch = 0;
+
+        hr = g_pd3dDevice->CreateBuffer(&desc, &data, &g_pIndexBuffer);
+        assert(SUCCEEDED(hr));
+    }
+
+    ID3D10Blob* vShaderBuffer = nullptr;
+    ID3D10Blob* pShaderBuffer = nullptr;
+
+    int flags = 0;
+#ifdef _DEBUG
+    flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    if (SUCCEEDED(hr)) {
+        hr = D3DCompileFromFile(L"VS.hlsl", nullptr, nullptr, "vs", "vs_5_0", flags, 0, &vShaderBuffer, NULL);
+        hr = g_pd3dDevice->CreateVertexShader(vShaderBuffer->GetBufferPointer(), vShaderBuffer->GetBufferSize(), NULL, &g_pVertexShader);
+    }
+    if (SUCCEEDED(hr)) {
+        hr = D3DCompileFromFile(L"PS.hlsl", nullptr, nullptr, "ps", "ps_5_0", flags, 0, &pShaderBuffer, NULL);
+        hr = g_pd3dDevice->CreatePixelShader(pShaderBuffer->GetBufferPointer(), pShaderBuffer->GetBufferSize(), NULL, &g_pPixelShader);
+    }
+    if (SUCCEEDED(hr)) {
+        hr = g_pd3dDevice->CreateInputLayout(InputDesc, 2, vShaderBuffer->GetBufferPointer(), vShaderBuffer->GetBufferSize(), &g_pInputLayout);
+    }
+
+    SAFE_RELEASE(vShaderBuffer);
+    SAFE_RELEASE(pShaderBuffer);
+
+    return hr;
+}
+
