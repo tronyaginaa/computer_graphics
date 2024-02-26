@@ -173,6 +173,9 @@ HRESULT Renderer::InitDevice(HINSTANCE hInstance, HWND hWnd)
     if (SUCCEEDED(hr)) 
         hr = _pInput->Init(hInstance, hWnd);
 
+    if (FAILED(hr))
+        CleanupDevice();
+
     return hr;
 }
 
