@@ -101,13 +101,6 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) {
     if (!g_hWnd)
         return E_FAIL;
 
-    g_renderer = new Renderer();
-    if (FAILED(g_renderer->InitDevice(hInstance, g_hWnd))) 
-    {
-        delete g_renderer;
-        return E_FAIL;
-    }
-
     ShowWindow(g_hWnd, nCmdShow);
     SetForegroundWindow(g_hWnd);
     SetFocus(g_hWnd);
@@ -123,6 +116,13 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) {
         AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, TRUE);
 
         MoveWindow(g_hWnd, 100, 100, rc.right - rc.left, rc.bottom - rc.top, TRUE);
+    }
+
+    g_renderer = new Renderer();
+    if (FAILED(g_renderer->InitDevice(hInstance, g_hWnd)))
+    {
+        delete g_renderer;
+        return E_FAIL;
     }
 
     return S_OK;
@@ -149,10 +149,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_SIZE:
-        if (g_renderer->pSwapChain) {
-            RECT rc;
-            GetClientRect(hWnd, &rc);
-            g_renderer->WinResize(rc.right - rc.left, rc.bottom - rc.top);
+        if (g_renderer) {
+            if (g_renderer->pSwapChain) {
+                RECT rc;
+                GetClientRect(hWnd, &rc);
+                g_renderer->WinResize(rc.right - rc.left, rc.bottom - rc.top);
+            }
         }
         break;
 
