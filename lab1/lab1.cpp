@@ -102,12 +102,15 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) {
         return E_FAIL;
 
     g_renderer = new Renderer();
-    if (FAILED(g_renderer->InitDevice(g_hWnd))) {
+    if (FAILED(g_renderer->InitDevice(hInstance, g_hWnd))) 
+    {
         delete g_renderer;
         return E_FAIL;
     }
 
     ShowWindow(g_hWnd, nCmdShow);
+    SetForegroundWindow(g_hWnd);
+    SetFocus(g_hWnd);
     UpdateWindow(g_hWnd);
 
     {
@@ -145,13 +148,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
 
- /*   case WM_SIZE:
-        if (g_renderer->g_pSwapChain) {
+    case WM_SIZE:
+        if (g_renderer->pSwapChain) {
             RECT rc;
             GetClientRect(hWnd, &rc);
             g_renderer->WinResize(rc.right - rc.left, rc.bottom - rc.top);
         }
-        break;*/
+        break;
 
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
