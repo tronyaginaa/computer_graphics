@@ -1,3 +1,13 @@
+cbuffer WorldMatrixBuffer : register(b0)
+{
+    float4x4 worldMatrix;
+};
+
+cbuffer SceneMatrixBuffer : register(b1)
+{
+    float4x4 viewProjectionMatrix;
+};
+
 struct VSInput
 {
     float3 position : POSITION;
@@ -13,7 +23,7 @@ struct VSOutput
 VSOutput vs(VSInput vertex)
 {
     VSOutput result;
-    result.position = float4(vertex.position, 1.0f);
+    result.position = mul(viewProjectionMatrix, mul(worldMatrix, float4(vertex.position, 1.0f)));
     result.color = vertex.color;
 
     return result;
