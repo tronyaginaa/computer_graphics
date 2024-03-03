@@ -9,14 +9,11 @@ Camera::Camera()
     _updateViewMatrix();
 }
 
-void Camera::ChangePos(float dphi, float dtheta, float dr) 
+void Camera::ChangePos(float dphi, float dtheta) 
 {
     _phi -= dphi;
     _theta += dtheta;
     _theta = min(max(_theta, -XM_PIDIV2), XM_PIDIV2);
-    _r += dr;
-    if (_r < 2.0f) 
-        _r = 2.0f;
     _updateViewMatrix();
 }
 

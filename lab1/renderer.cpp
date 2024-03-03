@@ -164,14 +164,6 @@ HRESULT Renderer::InitDevice(HINSTANCE hInstance, HWND hWnd)
         if (!_pCamera) 
             hr = S_FALSE;
     }
-    if (SUCCEEDED(hr)) 
-    {
-        _pInput = new Input;
-        if (!_pInput) 
-            hr = S_FALSE;
-    }
-    if (SUCCEEDED(hr)) 
-        hr = _pInput->Init(hInstance, hWnd);
 
     if (FAILED(hr))
         CleanupDevice();
@@ -260,13 +252,6 @@ void Renderer::CleanupDevice()
         delete _pCamera;
         _pCamera = nullptr;
     }
-
-    if (_pInput) 
-    {
-        delete _pInput;
-        _pInput = nullptr;
-    }
-
 
 }
 
@@ -461,17 +446,10 @@ HRESULT Renderer::_initScene()
     return hr;
 }
 
-void Renderer::_inputHandler() 
-{
-    XMFLOAT3 move = _pInput->ReadInput();
-    _pCamera->ChangePos(move.x / 100.0f, move.y / 100.0f, -move.z / 100.0f);
-}
 
 bool Renderer::_updateScene() 
 {
     HRESULT result;
-
-    _inputHandler();
 
     static float t = 0.0f;
     static ULONGLONG timeStart = 0;
@@ -499,4 +477,28 @@ bool Renderer::_updateScene()
     }
 
     return SUCCEEDED(result);
+}
+
+void Renderer::MouseButtonDown(WPARAM wParam, LPARAM lParam) 
+{
+    _mouseButtonPressed = true;
+    _prevMousePos.x = GET_X_LPARAM(lParam);
+    _prevMousePos.y = GET_Y_LPARAM(lParam);
+}
+
+void Renderer::MouseButtonUp(WPARAM wParam, LPARAM lParam) 
+{
+    _mouseButtonPressed = false;
+    _prevMousePos.x = GET_X_LPARAM(lParam);
+    _prevMousePos.y = GET_Y_LPARAM(lParam);
+}
+
+void Renderer::MouseMoved(WPARAM wParam, LPARAM lParam)
+{
+    if (_mouseButtonPressed) {
+        _pCamera->ChangePos((GET_X_LPARAM(lParam) - _prevMousePos.x) / 100.0f, (GET_Y_LPARAM(lParam) - _prevMousePos.y) / 100.0f);
+        _prevMousePos.x = GET_X_LPARAM(lParam);
+        _prevMousePos.y = GET_Y_LPARAM(lParam);
+    }
+        
 }

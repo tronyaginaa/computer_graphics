@@ -3,10 +3,9 @@
 #include <d3d11_1.h>
 #include <directxcolors.h>
 #include <d3dcompiler.h>
-#include "renderer.h"
 #include "camera.h"
-#include "input.h"
 #include <DirectXMath.h>
+#include <windowsx.h>
 
 using namespace DirectX;
 
@@ -40,6 +39,10 @@ public:
 	bool WinResize(UINT width, UINT height);
 	HRESULT InitDevice(HINSTANCE hInstance, HWND hWnd);
 	IDXGISwapChain* pSwapChain = nullptr;
+	void MouseButtonDown(WPARAM wParam, LPARAM lParam);
+	void MouseButtonUp(WPARAM wParam, LPARAM lParam);
+	void MouseMoved(WPARAM wParam, LPARAM lParam);
+
 private:
 	D3D_DRIVER_TYPE         _driverType = D3D_DRIVER_TYPE_NULL;
 	D3D_FEATURE_LEVEL       _featureLevel = D3D_FEATURE_LEVEL_11_0;
@@ -70,11 +73,11 @@ private:
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
 
 	Camera* _pCamera = nullptr;
-	Input* _pInput = nullptr;
 
+	bool _mouseButtonPressed = false;
+	POINT _prevMousePos;
 
 	HRESULT _setupBackBuffer();
 	HRESULT _initScene();
-	void _inputHandler();
 	bool _updateScene();
 };
