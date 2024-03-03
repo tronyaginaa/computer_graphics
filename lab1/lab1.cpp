@@ -74,7 +74,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 //--------------------------------------------------------------------------------------
 // Register class and create window
 //--------------------------------------------------------------------------------------
-HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) {
+HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) 
+{
 
     // Register class
     WNDCLASSEX wcex;
@@ -149,12 +150,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_SIZE:
-        if (g_renderer) {
-            if (g_renderer->pSwapChain) {
-                RECT rc;
-                GetClientRect(hWnd, &rc);
-                g_renderer->WinResize(rc.right - rc.left, rc.bottom - rc.top);
-            }
+        if (g_renderer) 
+        {
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+            g_renderer->WinResize(rc.right - rc.left, rc.bottom - rc.top);
         }
         break;
     
