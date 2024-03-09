@@ -8,8 +8,8 @@ class Camera
 {
 public:
     Camera();
-    void ChangePos(float dphi, float dtheta, float dr);
-
+    void ChangePos(float dphi, float dtheta);
+    XMFLOAT3 GetPos();
     XMMATRIX& GetViewMatrix() { return _viewMatrix; };
 private:
     XMMATRIX _viewMatrix;
