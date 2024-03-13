@@ -47,6 +47,11 @@ struct SkyboxVertex {
 	float x, y, z;
 };
 
+struct TransparentVertex {
+	float x, y, z;
+	COLORREF color;
+};
+
 class Renderer 
 {
 public:
@@ -92,11 +97,16 @@ private:
 	UINT _width;
 	UINT _height;
 
-	ID3D11Buffer* _pWorldMatrix = nullptr;
+	ID3D11Buffer* _pWorldMatrix[2] = { nullptr, nullptr };
 	ID3D11Buffer* _pViewMatrix = nullptr;
 	ID3D11Buffer* _pCubeWorldMatrix = nullptr;
 	ID3D11Buffer* _pCubeViewMatrix = nullptr;
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
+
+	ID3D11Texture2D* _pDepthBuffer = nullptr;
+	ID3D11DepthStencilView* _pDepthBufferDSV = nullptr;
+	ID3D11DepthStencilState* _pDepthState[2] = { NULL, NULL };
+	ID3D11BlendState* _pBlendState = nullptr;
 
 	Camera* _pCamera = nullptr;
 	ID3D11SamplerState* _pSampler = nullptr;

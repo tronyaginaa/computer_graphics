@@ -3,7 +3,7 @@
 Camera::Camera() 
 {
     _center = XMFLOAT3(0.0f, 0.0f, 0.0f);
-    _r = 3.0f;
+    _r = 6.0f;
     _theta = XM_PIDIV4;
     _phi = -XM_PIDIV4;
     _updateViewMatrix();

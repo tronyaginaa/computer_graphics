@@ -222,6 +222,7 @@ void Renderer::Render()
 
     ID3D11ShaderResourceView* resources[] = { _pTexture };
     _pImmediateContext->PSSetShaderResources(0, 1, resources);
+    _pImmediateContext->OMSetDepthStencilState(_pDepthState[0], 0);
 
     _pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
     ID3D11Buffer* vBuffers[] = { _pVertexBuffer };
@@ -230,11 +231,15 @@ void Renderer::Render()
     _pImmediateContext->IASetVertexBuffers(0, 1, vBuffers, strides, offsets);
     _pImmediateContext->IASetInputLayout(_pInputLayout);
     _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    _pImmediateContext->VSSetConstantBuffers(0, 1, &_pWorldMatrix);
+    _pImmediateContext->VSSetConstantBuffers(0, 1, &_pWorldMatrix[0]);
     _pImmediateContext->VSSetConstantBuffers(1, 1, &_pViewMatrix);
     _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
     _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
     _pImmediateContext->DrawIndexed(36, 0, 0);
+    _pImmediateContext->VSSetConstantBuffers(0, 1, &_pWorldMatrix[1]);
+    _pImmediateContext->DrawIndexed(36, 0, 0);
+    _pImmediateContext->OMSetDepthStencilState(_pDepthState[1], 0);
+
 
 
     HRESULT hr = _pSwapChain->Present(1, 0);
@@ -269,7 +274,8 @@ void Renderer::CleanupDevice()
     if (_pInputLayout) _pInputLayout->Release();
     if (_pCubeInputLayout) _pCubeInputLayout->Release();
 
-    if (_pWorldMatrix) _pWorldMatrix->Release();
+    if (_pWorldMatrix[0]) _pWorldMatrix[0]->Release();
+    if (_pWorldMatrix[1]) _pWorldMatrix[1]->Release();
     if (_pViewMatrix) _pViewMatrix->Release();
     if (_pCubeWorldMatrix) _pCubeWorldMatrix->Release();
     if (_pCubeViewMatrix) _pCubeViewMatrix->Release();
@@ -278,7 +284,11 @@ void Renderer::CleanupDevice()
     if (_pTexture) _pTexture->Release();
     if (_pCubeTexture) _pCubeTexture->Release();
 
-    if (_pSampler) _pSampler->Release();
+    if (_pDepthBuffer) _pDepthBuffer->Release();
+    if (_pDepthBufferDSV) _pDepthBufferDSV->Release();
+    if (_pDepthState[0]) _pDepthState[0]->Release();
+    if (_pDepthState[1]) _pDepthState[1]->Release();
+    if (_pBlendState) _pBlendState->Release();
 
     if (_pCamera) 
     {
@@ -299,6 +309,27 @@ HRESULT Renderer::_setupBackBuffer()
         assert(SUCCEEDED(hr));
 
         SAFE_RELEASE(pBackBuffer);
+
+        SAFE_RELEASE(_pDepthBuffer);
+        SAFE_RELEASE(_pDepthBufferDSV);
+        D3D11_TEXTURE2D_DESC desc = {};
+        desc.Format = DXGI_FORMAT_D32_FLOAT;
+        desc.ArraySize = 1;
+        desc.MipLevels = 1;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.Height = _height;
+        desc.Width = _width;
+        desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+
+        hr = _pd3dDevice->CreateTexture2D(&desc, NULL, &_pDepthBuffer);
+        assert(SUCCEEDED(hr));
+
+        hr = _pd3dDevice->CreateDepthStencilView(_pDepthBuffer, NULL, &_pDepthBufferDSV);
+        assert(SUCCEEDED(hr));
     }
     return hr;
 }
@@ -546,7 +577,11 @@ HRESULT Renderer::_initScene()
         data.SysMemPitch = sizeof(worldMatrixBuffer);
         data.SysMemSlicePitch = 0;
 
-        hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrix);
+        hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrix[0]);
+        if (SUCCEEDED(hr)) {
+            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(4.0f, 0.0f, 0.0f);
+            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrix[1]);
+        }
     }
     if (SUCCEEDED(hr))
     {
@@ -703,6 +738,40 @@ HRESULT Renderer::_initScene()
 
         hr = _pd3dDevice->CreateSamplerState(&desc, &_pSampler);
     }
+    if (SUCCEEDED(hr)) {
+        D3D11_DEPTH_STENCIL_DESC dsDesc = { };
+        dsDesc.DepthEnable = TRUE;
+        dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+        dsDesc.DepthFunc = D3D11_COMPARISON_GREATER;
+        dsDesc.StencilEnable = FALSE;
+
+        hr = _pd3dDevice->CreateDepthStencilState(&dsDesc, &_pDepthState[0]);
+    }
+    if (SUCCEEDED(hr)) {
+        D3D11_DEPTH_STENCIL_DESC dsDesc = { };
+        dsDesc.DepthEnable = TRUE;
+        dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        dsDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+        dsDesc.StencilEnable = FALSE;
+
+        hr = _pd3dDevice->CreateDepthStencilState(&dsDesc, &_pDepthState[1]);
+    }
+    if (SUCCEEDED(hr)) {
+        D3D11_BLEND_DESC desc = { 0 };
+        desc.AlphaToCoverageEnable = false;
+        desc.IndependentBlendEnable = false;
+        desc.RenderTarget[0].BlendEnable = true;
+        desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+        desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED |
+            D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+        desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+        desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+
+        hr = _pd3dDevice->CreateBlendState(&desc, &_pBlendState);
+    }
 
     return hr;
 }
@@ -721,7 +790,7 @@ bool Renderer::_updateScene()
     WorldMatrixBuffer worldMatrixBuffer;
     worldMatrixBuffer.worldMatrix = XMMatrixRotationY(t);
 
-    _pImmediateContext->UpdateSubresource(_pWorldMatrix, 0, nullptr, &worldMatrixBuffer, 0, 0);
+    _pImmediateContext->UpdateSubresource(_pWorldMatrix[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
 
     XMMATRIX mView = _pCamera->GetViewMatrix();
 
