@@ -80,32 +80,34 @@ private:
 
 	ID3D11Buffer* _pIndexBuffer = nullptr;
 	ID3D11Buffer* _pVertexBuffer = nullptr;
-	ID3D11Buffer* _pCubeIndexBuffer = nullptr;
-	ID3D11Buffer* _pCubeVertexBuffer = nullptr;
+	ID3D11Buffer* _pSkyboxIndexBuffer = nullptr;
+	ID3D11Buffer* _pSkyboxVertexBuffer = nullptr;
 
 	ID3D11VertexShader* _pVertexShader = nullptr;
 	ID3D11PixelShader* _pPixelShader = nullptr;
-	ID3D11VertexShader* _pCubeVertexShader = nullptr;
-	ID3D11PixelShader* _pCubePixelShader = nullptr;
+	ID3D11VertexShader* _pSkyboxVertexShader = nullptr;
+	ID3D11PixelShader* _pSkyboxPixelShader = nullptr;
 
 	ID3D11InputLayout* _pInputLayout = nullptr;
-	ID3D11InputLayout* _pCubeInputLayout = nullptr;
+	ID3D11InputLayout* _pSkyboxInputLayout = nullptr;
 
 	ID3D11ShaderResourceView* _pTexture = nullptr;
-	ID3D11ShaderResourceView* _pCubeTexture = nullptr;
+	ID3D11ShaderResourceView* _pSkyboxTexture = nullptr;
 
 	UINT _width;
 	UINT _height;
 
 	ID3D11Buffer* _pWorldMatrix[2] = { nullptr, nullptr };
 	ID3D11Buffer* _pViewMatrix = nullptr;
-	ID3D11Buffer* _pCubeWorldMatrix = nullptr;
-	ID3D11Buffer* _pCubeViewMatrix = nullptr;
+	ID3D11Buffer* _pSkyboxWorldMatrix = nullptr;
+	ID3D11Buffer* _pSkyboxViewMatrix = nullptr;
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
 
 	ID3D11Texture2D* _pDepthBuffer = nullptr;
 	ID3D11DepthStencilView* _pDepthBufferDSV = nullptr;
-	ID3D11DepthStencilState* _pDepthState[2] = { NULL, NULL };
+	ID3D11DepthStencilState* _pDepthState = nullptr;
+	ID3D11DepthStencilState* _pSkyboxDepthState = nullptr;
+	  
 	ID3D11BlendState* _pBlendState = nullptr;
 
 	Camera* _pCamera = nullptr;
@@ -119,6 +121,7 @@ private:
 	float _radius = 1.0;
 
 	HRESULT _setupBackBuffer();
+	HRESULT _setupDepthBuffer();
 	HRESULT _initScene();
 	bool _updateScene();
 };
