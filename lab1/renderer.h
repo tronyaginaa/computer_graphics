@@ -80,27 +80,33 @@ private:
 
 	ID3D11Buffer* _pIndexBuffer = nullptr;
 	ID3D11Buffer* _pVertexBuffer = nullptr;
-	ID3D11Buffer* _pSkyboxIndexBuffer = nullptr;
-	ID3D11Buffer* _pSkyboxVertexBuffer = nullptr;
-
 	ID3D11VertexShader* _pVertexShader = nullptr;
 	ID3D11PixelShader* _pPixelShader = nullptr;
+	ID3D11InputLayout* _pInputLayout = nullptr;
+	ID3D11ShaderResourceView* _pTexture = nullptr;
+	ID3D11Buffer* _pWorldMatrix[2] = { nullptr, nullptr };
+	ID3D11Buffer* _pViewMatrix = nullptr;
+
+	ID3D11Buffer* _pSkyboxIndexBuffer = nullptr;
+	ID3D11Buffer* _pSkyboxVertexBuffer = nullptr;
 	ID3D11VertexShader* _pSkyboxVertexShader = nullptr;
 	ID3D11PixelShader* _pSkyboxPixelShader = nullptr;
-
-	ID3D11InputLayout* _pInputLayout = nullptr;
 	ID3D11InputLayout* _pSkyboxInputLayout = nullptr;
-
-	ID3D11ShaderResourceView* _pTexture = nullptr;
 	ID3D11ShaderResourceView* _pSkyboxTexture = nullptr;
+	ID3D11Buffer* _pSkyboxWorldMatrix = nullptr;
+	ID3D11Buffer* _pSkyboxViewMatrix = nullptr;
 
 	UINT _width;
 	UINT _height;
 
-	ID3D11Buffer* _pWorldMatrix[2] = { nullptr, nullptr };
-	ID3D11Buffer* _pViewMatrix = nullptr;
-	ID3D11Buffer* _pSkyboxWorldMatrix = nullptr;
-	ID3D11Buffer* _pSkyboxViewMatrix = nullptr;
+	ID3D11Buffer* _pTIndexBuffer = nullptr;
+	ID3D11Buffer* _pTVertexBuffer = nullptr;
+	ID3D11VertexShader* _pTVertexShader = nullptr;
+	ID3D11PixelShader* _pTPixelShader = nullptr;
+	ID3D11InputLayout* _pTInputLayout = nullptr;
+	ID3D11Buffer* _pTWorldMatrix[3] = { nullptr, nullptr, nullptr };
+	ID3D11Buffer* _pTViewMatrix = nullptr;
+	
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
 
 	ID3D11Texture2D* _pDepthBuffer = nullptr;
