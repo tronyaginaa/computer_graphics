@@ -812,7 +812,7 @@ HRESULT Renderer::_initScene()
         D3D11_RASTERIZER_DESC desc = {};
         desc.AntialiasedLineEnable = false;
         desc.FillMode = D3D11_FILL_SOLID;
-        desc.CullMode = D3D11_CULL_BACK;
+        desc.CullMode = D3D11_CULL_NONE;
         desc.DepthBias = 0;
         desc.DepthBiasClamp = 0.0f;
         desc.FrontCounterClockwise = false;
@@ -853,7 +853,7 @@ HRESULT Renderer::_initScene()
     if (SUCCEEDED(hr)) {
         D3D11_DEPTH_STENCIL_DESC dsDesc = { };
         dsDesc.DepthEnable = TRUE;
-        dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
         dsDesc.DepthFunc = D3D11_COMPARISON_GREATER;
         dsDesc.StencilEnable = FALSE;
 
