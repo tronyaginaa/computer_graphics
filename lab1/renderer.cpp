@@ -788,13 +788,13 @@ HRESULT Renderer::_initScene()
         flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
         if (SUCCEEDED(hr)) {
-            hr = D3DCompileFromFile(L"TVS.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
+            hr = D3DCompileFromFile(L"Transparent_VS.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
             if (SUCCEEDED(hr)) {
                 hr = _pd3dDevice->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &_pTVertexShader);
             }
         }
         if (SUCCEEDED(hr)) {
-            hr = D3DCompileFromFile(L"TPS.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
+            hr = D3DCompileFromFile(L"Transparent_PS.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
             if (SUCCEEDED(hr)) {
                 hr = _pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &_pTPixelShader);
             }
