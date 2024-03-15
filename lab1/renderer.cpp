@@ -253,8 +253,6 @@ void Renderer::Render()
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pTWorldMatrix[1]);
         _pImmediateContext->DrawIndexed(3, 0, 0);
 
-        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pTWorldMatrix[2]);
-        _pImmediateContext->DrawIndexed(3, 0, 0);
     }
     
 
@@ -306,6 +304,14 @@ void Renderer::CleanupDevice()
     if (_pSkyboxDepthState) _pSkyboxDepthState->Release();
     if (_pBlendState) _pBlendState->Release();
 
+    if (_pTIndexBuffer) _pTIndexBuffer->Release();
+    if (_pTVertexBuffer) _pTVertexBuffer->Release();
+    if (_pTVertexShader) _pTVertexShader->Release();
+    if (_pTPixelShader) _pTPixelShader->Release();
+    if (_pTInputLayout) _pTInputLayout->Release();
+    if (_pTWorldMatrix[0]) _pTWorldMatrix[0]->Release();
+    if (_pTWorldMatrix[1]) _pTWorldMatrix[1]->Release();
+
     if (_pCamera) 
     {
         delete _pCamera;
@@ -328,7 +334,8 @@ HRESULT Renderer::_setupBackBuffer()
     return hr;
 }
 
-HRESULT Renderer::_setupDepthBuffer() {
+HRESULT Renderer::_setupDepthBuffer() 
+{
     HRESULT hr = S_OK;
 
     D3D11_TEXTURE2D_DESC desc = {};
@@ -734,7 +741,8 @@ HRESULT Renderer::_initScene()
         }
     }
     {
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr)) 
+        {
             D3D11_BUFFER_DESC desc = {};
             desc.ByteWidth = sizeof(VerticesT);
             desc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -750,7 +758,8 @@ HRESULT Renderer::_initScene()
 
             hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTVertexBuffer);
         }
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr)) 
+        {
             D3D11_BUFFER_DESC desc = {};
             desc.ByteWidth = sizeof(IndicesT);
             desc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -773,19 +782,24 @@ HRESULT Renderer::_initScene()
 #ifdef _DEBUG
         flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr)) 
+        {
             hr = D3DCompileFromFile(L"Transparent_VS.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
-            if (SUCCEEDED(hr)) {
+            if (SUCCEEDED(hr))
+            {
                 hr = _pd3dDevice->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &_pTVertexShader);
             }
         }
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr)) 
+        {
             hr = D3DCompileFromFile(L"Transparent_PS.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
-            if (SUCCEEDED(hr)) {
+            if (SUCCEEDED(hr))
+            {
                 hr = _pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &_pTPixelShader);
             }
         }
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr)) 
+        {
             int numElements = sizeof(InputDescT) / sizeof(InputDescT[0]);
             hr = _pd3dDevice->CreateInputLayout(InputDescT, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &_pTInputLayout);
         }
@@ -836,7 +850,8 @@ HRESULT Renderer::_initScene()
 
         hr = _pd3dDevice->CreateSamplerState(&desc, &_pSampler);
     }
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr))
+    {
         D3D11_DEPTH_STENCIL_DESC dsDesc = { };
         dsDesc.DepthEnable = TRUE;
         dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -845,7 +860,8 @@ HRESULT Renderer::_initScene()
 
         hr = _pd3dDevice->CreateDepthStencilState(&dsDesc, &_pDepthState);
     }
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr)) 
+    {
         D3D11_DEPTH_STENCIL_DESC dsDesc = { };
         dsDesc.DepthEnable = TRUE;
         dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -854,7 +870,8 @@ HRESULT Renderer::_initScene()
 
         hr = _pd3dDevice->CreateDepthStencilState(&dsDesc, &_pSkyboxDepthState);
     }
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr)) 
+    {
         D3D11_BLEND_DESC desc = { 0 };
         desc.AlphaToCoverageEnable = false;
         desc.IndependentBlendEnable = false;

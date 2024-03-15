@@ -105,7 +105,6 @@ private:
 	ID3D11PixelShader* _pTPixelShader = nullptr;
 	ID3D11InputLayout* _pTInputLayout = nullptr;
 	ID3D11Buffer* _pTWorldMatrix[2] = { nullptr, nullptr };
-	ID3D11Buffer* _pTViewMatrix = nullptr;
 	
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
 
