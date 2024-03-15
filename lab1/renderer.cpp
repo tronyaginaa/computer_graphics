@@ -173,7 +173,7 @@ void Renderer::Render()
 
     ID3D11RenderTargetView* views[] = { _pRenderTargetView };
     _pImmediateContext->OMSetRenderTargets(1, views, _pDepthBufferDSV);
-    _pImmediateContext->ClearRenderTargetView(_pRenderTargetView, DirectX::Colors::LightPink);
+    _pImmediateContext->ClearRenderTargetView(_pRenderTargetView, Colors::LightPink);
     _pImmediateContext->ClearDepthStencilView(_pDepthBufferDSV, D3D11_CLEAR_DEPTH, 0.0f, 0);
 
     D3D11_VIEWPORT vp;
@@ -427,9 +427,9 @@ HRESULT Renderer::_initScene()
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0} };
 
     static const TransparentVertex VerticesT[] = {
-       {0, -2, -2, RGB(0, 0, 255)},
-       {0,  2, 0, RGB(0, 255, 0)},
-       {0,  -2,  2, RGB(255, 0, 0)}
+       {0, -2.5, -2.5, RGB(0, 0, 255)},
+       {0,  2.5, 0, RGB(0, 255, 0)},
+       {0,  -2.5,  2.5, RGB(255, 0, 0)}
     };
     static const USHORT IndicesT[] = {
         0, 2, 1
@@ -606,7 +606,7 @@ HRESULT Renderer::_initScene()
         desc.StructureByteStride = 0;
 
         WorldMatrixBuffer worldMatrixBuffer;
-        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixIdentity();
+        worldMatrixBuffer.worldMatrix = XMMatrixIdentity();
 
         D3D11_SUBRESOURCE_DATA data;
         data.pSysMem = &worldMatrixBuffer;
@@ -615,25 +615,11 @@ HRESULT Renderer::_initScene()
 
         hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrix[0]);
         if (SUCCEEDED(hr)) 
-        {
-            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(4.0f, 0.0f, 0.0f);
             hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrix[1]);
-        }
         if (SUCCEEDED(hr)) 
-        {
-            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(2.0f, 0.0f, 0.0f);
             hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTWorldMatrix[0]);
-        }
         if (SUCCEEDED(hr)) 
-        {
-            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(-1.0f, 0.0f, 3.0f);
             hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTWorldMatrix[1]);
-        }
-        if (SUCCEEDED(hr))
-        {
-            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(-2.0f, 2.0f, 1.0f);
-            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTWorldMatrix[2]);
-        }
     }
     if (SUCCEEDED(hr))
     {
@@ -903,6 +889,15 @@ bool Renderer::_updateScene()
     worldMatrixBuffer.worldMatrix = XMMatrixRotationY(t);
 
     _pImmediateContext->UpdateSubresource(_pWorldMatrix[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
+
+    worldMatrixBuffer.worldMatrix = XMMatrixTranslation(4.0f, 0.0f, 0.0f);
+    _pImmediateContext->UpdateSubresource(_pWorldMatrix[1], 0, nullptr, &worldMatrixBuffer, 0, 0);
+
+    worldMatrixBuffer.worldMatrix = XMMatrixTranslation(2.0f, sin(t), 0.0f);
+    _pImmediateContext->UpdateSubresource(_pTWorldMatrix[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
+
+    worldMatrixBuffer.worldMatrix = XMMatrixTranslation(-2.0f, 0.0f, sin(t));
+    _pImmediateContext->UpdateSubresource(_pTWorldMatrix[1], 0, nullptr, &worldMatrixBuffer, 0, 0);
    
     XMMATRIX mView = _pCamera->GetViewMatrix();
 
