@@ -826,7 +826,7 @@ HRESULT Renderer::_initScene()
     }
     if (SUCCEEDED(hr)) 
     {
-        hr = CreateDDSTextureFromFile(_pd3dDevice, _pImmediateContext, L"./cot.dds", nullptr, &_pTexture);
+        hr = CreateDDSTextureFromFile(_pd3dDevice, _pImmediateContext, L"./kisa.dds", nullptr, &_pTexture);
     }
     if (SUCCEEDED(hr)) 
     {
