@@ -312,6 +312,8 @@ void Renderer::CleanupDevice()
     if (_pTWorldMatrix[0]) _pTWorldMatrix[0]->Release();
     if (_pTWorldMatrix[1]) _pTWorldMatrix[1]->Release();
 
+    if (_pSampler) _pSampler->Release();
+
     if (_pCamera) 
     {
         delete _pCamera;
@@ -327,7 +329,6 @@ HRESULT Renderer::_setupBackBuffer()
     if (SUCCEEDED(hr)) 
     {
         hr = _pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &_pRenderTargetView);
-        assert(SUCCEEDED(hr));
 
         SAFE_RELEASE(pBackBuffer);
     }
