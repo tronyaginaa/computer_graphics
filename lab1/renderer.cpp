@@ -196,10 +196,9 @@ void Renderer::Render()
     ID3D11SamplerState* samplers[] = { _pSampler };
     _pImmediateContext->PSSetSamplers(0, 1, samplers);
     {  
-        _pImmediateContext->OMSetDepthStencilState(_pSkyboxDepthState, 0);
+        _pImmediateContext->OMSetDepthStencilState(_pZeroDepthState, 0);
         ID3D11ShaderResourceView* resources[] = {_pSkyboxTexture };
         _pImmediateContext->PSSetShaderResources(0, 1, resources);
-
         _pImmediateContext->IASetIndexBuffer(_pSkyboxIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
         ID3D11Buffer* vBuffers[] = { _pSkyboxVertexBuffer };
         UINT strides[] = { 12 };
@@ -211,14 +210,12 @@ void Renderer::Render()
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pSkyboxWorldMatrix);
         _pImmediateContext->VSSetConstantBuffers(1, 1, &_pSkyboxViewMatrix);
         _pImmediateContext->PSSetShader(_pSkyboxPixelShader, nullptr, 0);
-
         _pImmediateContext->DrawIndexed(_numSphereTriangles * 3, 0, 0);
     }
     {
         ID3D11ShaderResourceView* resources[] = { _pTexture };
         _pImmediateContext->PSSetShaderResources(0, 1, resources);
         _pImmediateContext->OMSetDepthStencilState(_pDepthState, 0);
-
         _pImmediateContext->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
         ID3D11Buffer* vBuffers[] = { _pVertexBuffer };
         UINT strides[] = { 20 };
@@ -235,21 +232,19 @@ void Renderer::Render()
         _pImmediateContext->DrawIndexed(36, 0, 0);
     }
     {
+        _pImmediateContext->OMSetDepthStencilState(_pZeroDepthState, 0);
         _pImmediateContext->IASetIndexBuffer(_pTIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
         ID3D11Buffer* vertexBuffers[] = { _pTVertexBuffer };
         UINT strides[] = { 16 };
         UINT offsets[] = { 0 };
         _pImmediateContext->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
         _pImmediateContext->IASetInputLayout(_pTInputLayout);
-
         _pImmediateContext->VSSetShader(_pTVertexShader, nullptr, 0);
         _pImmediateContext->PSSetShader(_pTPixelShader, nullptr, 0);
         _pImmediateContext->VSSetConstantBuffers(1, 1, &_pViewMatrix);
-
         _pImmediateContext->OMSetBlendState(_pBlendState, nullptr, 0xFFFFFFFF);
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pTWorldMatrix[0]);
         _pImmediateContext->DrawIndexed(3, 0, 0);
-
         _pImmediateContext->VSSetConstantBuffers(0, 1, &_pTWorldMatrix[1]);
         _pImmediateContext->DrawIndexed(3, 0, 0);
 
@@ -301,7 +296,7 @@ void Renderer::CleanupDevice()
     if (_pDepthBuffer) _pDepthBuffer->Release();
     if (_pDepthBufferDSV) _pDepthBufferDSV->Release();
     if (_pDepthState) _pDepthState->Release();
-    if (_pSkyboxDepthState) _pSkyboxDepthState->Release();
+    if (_pZeroDepthState) _pZeroDepthState->Release();
     if (_pBlendState) _pBlendState->Release();
 
     if (_pTIndexBuffer) _pTIndexBuffer->Release();
@@ -826,7 +821,7 @@ HRESULT Renderer::_initScene()
     }
     if (SUCCEEDED(hr)) 
     {
-        hr = CreateDDSTextureFromFile(_pd3dDevice, _pImmediateContext, L"./kisa.dds", nullptr, &_pTexture);
+        hr = CreateDDSTextureFromFile(_pd3dDevice, _pImmediateContext, L"./cot.dds", nullptr, &_pTexture);
     }
     if (SUCCEEDED(hr)) 
     {
@@ -856,7 +851,7 @@ HRESULT Renderer::_initScene()
         D3D11_DEPTH_STENCIL_DESC dsDesc = { };
         dsDesc.DepthEnable = TRUE;
         dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-        dsDesc.DepthFunc = D3D11_COMPARISON_GREATER;
+        dsDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
         dsDesc.StencilEnable = FALSE;
 
         hr = _pd3dDevice->CreateDepthStencilState(&dsDesc, &_pDepthState);
@@ -869,7 +864,7 @@ HRESULT Renderer::_initScene()
         dsDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
         dsDesc.StencilEnable = FALSE;
 
-        hr = _pd3dDevice->CreateDepthStencilState(&dsDesc, &_pSkyboxDepthState);
+        hr = _pd3dDevice->CreateDepthStencilState(&dsDesc, &_pZeroDepthState);
     }
     if (SUCCEEDED(hr)) 
     {
