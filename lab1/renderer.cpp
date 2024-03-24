@@ -1,6 +1,23 @@
 #include "renderer.h"
 
+float Renderer::_getDistToTrans(XMMATRIX worldMatrix, XMFLOAT3 cameraPos) {
+    XMFLOAT4 rectVert[3];
+    float maxDist = -D3D11_FLOAT32_MAX;
 
+    for (int i = 0; i < 3; i++) {
+        rectVert[i].x = TransVertices[i].x;
+        rectVert[i].y = TransVertices[i].y;
+        rectVert[i].z = TransVertices[i].z;
+        rectVert[i].w = 1;
+    }
+    for (int i = 0; i < 3; i++) {
+        XMStoreFloat4(&rectVert[i], XMVector4Transform(XMLoadFloat4(&rectVert[i]), worldMatrix));
+        float dist = (rectVert[i].x * cameraPos.x) + (rectVert[i].y * cameraPos.y) + (rectVert[i].z * cameraPos.z);
+        maxDist = max(maxDist, dist);
+    }
+
+    return maxDist;
+}
 
 HRESULT Renderer::InitDevice(HINSTANCE hInstance, HWND hWnd)
 {
@@ -207,8 +224,8 @@ void Renderer::Render()
         _pImmediateContext->IASetInputLayout(_pSkyboxInputLayout);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         _pImmediateContext->VSSetShader(_pSkyboxVertexShader, nullptr, 0);
-        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pSkyboxWorldMatrix);
-        _pImmediateContext->VSSetConstantBuffers(1, 1, &_pSkyboxViewMatrix);
+        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pSkyboxWorldMatrixBuffer);
+        _pImmediateContext->VSSetConstantBuffers(1, 1, &_pSkyboxViewMatrixBuffer);
         _pImmediateContext->PSSetShader(_pSkyboxPixelShader, nullptr, 0);
         _pImmediateContext->DrawIndexed(_numSphereTriangles * 3, 0, 0);
     }
@@ -223,12 +240,12 @@ void Renderer::Render()
         _pImmediateContext->IASetVertexBuffers(0, 1, vBuffers, strides, offsets);
         _pImmediateContext->IASetInputLayout(_pInputLayout);
         _pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pWorldMatrix[0]);
-        _pImmediateContext->VSSetConstantBuffers(1, 1, &_pViewMatrix);
+        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pWorldMatrixBuffer[0]);
+        _pImmediateContext->VSSetConstantBuffers(1, 1, &_pViewMatrixBuffer);
         _pImmediateContext->VSSetShader(_pVertexShader, nullptr, 0);
         _pImmediateContext->PSSetShader(_pPixelShader, nullptr, 0);
         _pImmediateContext->DrawIndexed(36, 0, 0);
-        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pWorldMatrix[1]);
+        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pWorldMatrixBuffer[1]);
         _pImmediateContext->DrawIndexed(36, 0, 0);
     }
     {
@@ -241,12 +258,23 @@ void Renderer::Render()
         _pImmediateContext->IASetInputLayout(_pTInputLayout);
         _pImmediateContext->VSSetShader(_pTVertexShader, nullptr, 0);
         _pImmediateContext->PSSetShader(_pTPixelShader, nullptr, 0);
-        _pImmediateContext->VSSetConstantBuffers(1, 1, &_pViewMatrix);
+        _pImmediateContext->VSSetConstantBuffers(1, 1, &_pViewMatrixBuffer);
         _pImmediateContext->OMSetBlendState(_pBlendState, nullptr, 0xFFFFFFFF);
-        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pTWorldMatrix[0]);
-        _pImmediateContext->DrawIndexed(3, 0, 0);
-        _pImmediateContext->VSSetConstantBuffers(0, 1, &_pTWorldMatrix[1]);
-        _pImmediateContext->DrawIndexed(3, 0, 0);
+        std::vector<std::pair<int, float>> cameraDist;
+        for (int i = 0; i < 2; i++)
+        {
+            float dist = _getDistToTrans(_TWorld[i].worldMatrix, _pCamera->GetPos());
+            cameraDist.push_back({ i, dist });
+        }
+        std::sort(cameraDist.begin(), cameraDist.end(), [](const std::pair<int, float>& a, const std::pair<int, float>& b)
+        {
+                return a.second < b.second;
+        });
+        for (int i = 0; i < cameraDist.size(); i++)
+        {
+            _pImmediateContext->VSSetConstantBuffers(0, 1, &_pTWorldMatrixBuffer[cameraDist[i].first]);
+            _pImmediateContext->DrawIndexed(3, 0, 0);
+        }
 
     }
     
@@ -283,11 +311,11 @@ void Renderer::CleanupDevice()
     if (_pInputLayout) _pInputLayout->Release();
     if (_pSkyboxInputLayout) _pSkyboxInputLayout->Release();
 
-    if (_pWorldMatrix[0]) _pWorldMatrix[0]->Release();
-    if (_pWorldMatrix[1]) _pWorldMatrix[1]->Release();
-    if (_pViewMatrix) _pViewMatrix->Release();
-    if (_pSkyboxWorldMatrix) _pSkyboxWorldMatrix->Release();
-    if (_pSkyboxViewMatrix) _pSkyboxViewMatrix->Release();
+    if (_pWorldMatrixBuffer[0]) _pWorldMatrixBuffer[0]->Release();
+    if (_pWorldMatrixBuffer[1]) _pWorldMatrixBuffer[1]->Release();
+    if (_pViewMatrixBuffer) _pViewMatrixBuffer->Release();
+    if (_pSkyboxWorldMatrixBuffer) _pSkyboxWorldMatrixBuffer->Release();
+    if (_pSkyboxViewMatrixBuffer) _pSkyboxViewMatrixBuffer->Release();
     if (_pRasterizerState) _pRasterizerState->Release();
 
     if (_pTexture) _pTexture->Release();
@@ -304,8 +332,8 @@ void Renderer::CleanupDevice()
     if (_pTVertexShader) _pTVertexShader->Release();
     if (_pTPixelShader) _pTPixelShader->Release();
     if (_pTInputLayout) _pTInputLayout->Release();
-    if (_pTWorldMatrix[0]) _pTWorldMatrix[0]->Release();
-    if (_pTWorldMatrix[1]) _pTWorldMatrix[1]->Release();
+    if (_pTWorldMatrixBuffer[0]) _pTWorldMatrixBuffer[0]->Release();
+    if (_pTWorldMatrixBuffer[1]) _pTWorldMatrixBuffer[1]->Release();
 
     if (_pSampler) _pSampler->Release();
 
@@ -429,11 +457,6 @@ HRESULT Renderer::_initScene()
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0} };
 
-    static const TransparentVertex VerticesT[] = {
-       {0, -2.5, -2.5, RGB(0, 0, 255)},
-       {0,  2.5, 0, RGB(0, 255, 0)},
-       {0,  -2.5,  2.5, RGB(255, 0, 0)}
-    };
     static const USHORT IndicesT[] = {
         0, 2, 1
     };
@@ -616,13 +639,13 @@ HRESULT Renderer::_initScene()
         data.SysMemPitch = sizeof(worldMatrixBuffer);
         data.SysMemSlicePitch = 0;
 
-        hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrix[0]);
+        hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrixBuffer[0]);
         if (SUCCEEDED(hr)) 
-            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrix[1]);
+            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pWorldMatrixBuffer[1]);
         if (SUCCEEDED(hr)) 
-            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTWorldMatrix[0]);
+            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTWorldMatrixBuffer[0]);
         if (SUCCEEDED(hr)) 
-            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTWorldMatrix[1]);
+            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTWorldMatrixBuffer[1]);
     }
     if (SUCCEEDED(hr))
     {
@@ -634,7 +657,7 @@ HRESULT Renderer::_initScene()
         desc.MiscFlags = 0;
         desc.StructureByteStride = 0;
 
-        hr = _pd3dDevice->CreateBuffer(&desc, nullptr, &_pViewMatrix);
+        hr = _pd3dDevice->CreateBuffer(&desc, nullptr, &_pViewMatrixBuffer);
     }
     {
         if (SUCCEEDED(hr))
@@ -721,7 +744,7 @@ HRESULT Renderer::_initScene()
             data.SysMemPitch = sizeof(skyboxWorldMatrixBuffer);
             data.SysMemSlicePitch = 0;
 
-            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pSkyboxWorldMatrix);
+            hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pSkyboxWorldMatrixBuffer);
         }
         if (SUCCEEDED(hr))
         {
@@ -733,14 +756,14 @@ HRESULT Renderer::_initScene()
             desc.MiscFlags = 0;
             desc.StructureByteStride = 0;
 
-            hr = _pd3dDevice->CreateBuffer(&desc, nullptr, &_pSkyboxViewMatrix);
+            hr = _pd3dDevice->CreateBuffer(&desc, nullptr, &_pSkyboxViewMatrixBuffer);
         }
     }
     {
         if (SUCCEEDED(hr)) 
         {
             D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = sizeof(VerticesT);
+            desc.ByteWidth = sizeof(TransVertices);
             desc.Usage = D3D11_USAGE_IMMUTABLE;
             desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
             desc.CPUAccessFlags = 0;
@@ -748,8 +771,8 @@ HRESULT Renderer::_initScene()
             desc.StructureByteStride = 0;
 
             D3D11_SUBRESOURCE_DATA data;
-            data.pSysMem = &VerticesT;
-            data.SysMemPitch = sizeof(VerticesT);
+            data.pSysMem = &TransVertices;
+            data.SysMemPitch = sizeof(TransVertices);
             data.SysMemSlicePitch = 0;
 
             hr = _pd3dDevice->CreateBuffer(&desc, &data, &_pTVertexBuffer);
@@ -900,29 +923,30 @@ bool Renderer::_updateScene()
 
     WorldMatrixBuffer worldMatrixBuffer;
     worldMatrixBuffer.worldMatrix = XMMatrixRotationY(t);
-
-    _pImmediateContext->UpdateSubresource(_pWorldMatrix[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
+    
+    worldMatrixBuffer.worldMatrix = XMMatrixRotationY(t);
+    _pImmediateContext->UpdateSubresource(_pWorldMatrixBuffer[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
 
     worldMatrixBuffer.worldMatrix = XMMatrixTranslation(4.0f, 0.0f, 0.0f);
-    _pImmediateContext->UpdateSubresource(_pWorldMatrix[1], 0, nullptr, &worldMatrixBuffer, 0, 0);
+    _pImmediateContext->UpdateSubresource(_pWorldMatrixBuffer[1], 0, nullptr, &worldMatrixBuffer, 0, 0);
 
-    worldMatrixBuffer.worldMatrix = XMMatrixTranslation(2.0f, sin(t), 0.0f);
-    _pImmediateContext->UpdateSubresource(_pTWorldMatrix[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
+    _TWorld[0].worldMatrix = XMMatrixTranslation(2.0f, sin(t), 0.0f);
+    _pImmediateContext->UpdateSubresource(_pTWorldMatrixBuffer[0], 0, nullptr, &_TWorld[0], 0, 0);
 
-    worldMatrixBuffer.worldMatrix = XMMatrixTranslation(-2.0f, 0.0f, sin(t));
-    _pImmediateContext->UpdateSubresource(_pTWorldMatrix[1], 0, nullptr, &worldMatrixBuffer, 0, 0);
+    _TWorld[1].worldMatrix = XMMatrixTranslation(-2.0f, 0.0f, sin(t));
+    _pImmediateContext->UpdateSubresource(_pTWorldMatrixBuffer[1], 0, nullptr, &_TWorld[1], 0, 0);
    
     XMMATRIX mView = _pCamera->GetViewMatrix();
 
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _width / (FLOAT)_height, 100.0f, 0.01f);
 
     D3D11_MAPPED_SUBRESOURCE subresource, skyboxSubresource;
-    hr = _pImmediateContext->Map(_pViewMatrix , 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+    hr = _pImmediateContext->Map(_pViewMatrixBuffer , 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
     if (SUCCEEDED(hr)) 
     {
         ViewMatrixBuffer& sceneBuffer = *reinterpret_cast<ViewMatrixBuffer*>(subresource.pData);
         sceneBuffer.viewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
-        _pImmediateContext->Unmap(_pViewMatrix, 0);
+        _pImmediateContext->Unmap(_pViewMatrixBuffer, 0);
     }
     if (SUCCEEDED(hr)) 
     {
@@ -931,9 +955,9 @@ bool Renderer::_updateScene()
         skyboxWorldMatrixBuffer.worldMatrix = XMMatrixIdentity();
         skyboxWorldMatrixBuffer.size = XMFLOAT4(_radius, 0.0f, 0.0f, 0.0f);
 
-        _pImmediateContext->UpdateSubresource(_pSkyboxWorldMatrix, 0, nullptr, &skyboxWorldMatrixBuffer, 0, 0);
+        _pImmediateContext->UpdateSubresource(_pSkyboxWorldMatrixBuffer, 0, nullptr, &skyboxWorldMatrixBuffer, 0, 0);
 
-        hr = _pImmediateContext->Map(_pSkyboxViewMatrix, 0, D3D11_MAP_WRITE_DISCARD, 0, &skyboxSubresource);
+        hr = _pImmediateContext->Map(_pSkyboxViewMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &skyboxSubresource);
     }
     if (SUCCEEDED(hr)) 
     {
@@ -941,7 +965,7 @@ bool Renderer::_updateScene()
         skyboxSceneBuffer.viewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
         XMFLOAT3 cameraPos = _pCamera->GetPos();
         skyboxSceneBuffer.cameraPos = XMFLOAT4(cameraPos.x, cameraPos.y, cameraPos.z, 1.0f);
-        _pImmediateContext->Unmap(_pSkyboxViewMatrix, 0);
+        _pImmediateContext->Unmap(_pSkyboxViewMatrixBuffer, 0);
     }
 
     return SUCCEEDED(hr);

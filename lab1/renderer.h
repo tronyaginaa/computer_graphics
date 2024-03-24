@@ -7,6 +7,7 @@
 #include <DirectXMath.h>
 #include <windowsx.h>
 #include <vector>
+#include <algorithm>
 #include "DDSTextureLoader11.h"
 
 using namespace DirectX;
@@ -52,6 +53,13 @@ struct TransparentVertex {
 	COLORREF color;
 };
 
+
+static const TransparentVertex TransVertices[] = {
+	 {0, -2.5, -2.5, RGB(0, 0, 255)},
+	 {0,  2.5, 0, RGB(0, 255, 0)},
+	 {0,  -2.5,  2.5, RGB(255, 0, 0)}
+};
+
 class Renderer 
 {
 public:
@@ -84,8 +92,8 @@ private:
 	ID3D11PixelShader* _pPixelShader = nullptr;
 	ID3D11InputLayout* _pInputLayout = nullptr;
 	ID3D11ShaderResourceView* _pTexture = nullptr;
-	ID3D11Buffer* _pWorldMatrix[2] = { nullptr, nullptr };
-	ID3D11Buffer* _pViewMatrix = nullptr;
+	ID3D11Buffer* _pWorldMatrixBuffer[2] = { nullptr, nullptr };
+	ID3D11Buffer* _pViewMatrixBuffer = nullptr;
 
 	ID3D11Buffer* _pSkyboxIndexBuffer = nullptr;
 	ID3D11Buffer* _pSkyboxVertexBuffer = nullptr;
@@ -93,8 +101,8 @@ private:
 	ID3D11PixelShader* _pSkyboxPixelShader = nullptr;
 	ID3D11InputLayout* _pSkyboxInputLayout = nullptr;
 	ID3D11ShaderResourceView* _pSkyboxTexture = nullptr;
-	ID3D11Buffer* _pSkyboxWorldMatrix = nullptr;
-	ID3D11Buffer* _pSkyboxViewMatrix = nullptr;
+	ID3D11Buffer* _pSkyboxWorldMatrixBuffer = nullptr;
+	ID3D11Buffer* _pSkyboxViewMatrixBuffer = nullptr;
 
 	UINT _width;
 	UINT _height;
@@ -104,7 +112,7 @@ private:
 	ID3D11VertexShader* _pTVertexShader = nullptr;
 	ID3D11PixelShader* _pTPixelShader = nullptr;
 	ID3D11InputLayout* _pTInputLayout = nullptr;
-	ID3D11Buffer* _pTWorldMatrix[2] = { nullptr, nullptr };
+	ID3D11Buffer* _pTWorldMatrixBuffer[2] = { nullptr, nullptr };
 	
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
 
@@ -117,7 +125,7 @@ private:
 
 	Camera* _pCamera = nullptr;
 	ID3D11SamplerState* _pSampler = nullptr;
-
+	WorldMatrixBuffer _TWorld[2];
 
 	bool _mouseButtonPressed = false;
 	POINT _prevMousePos;
@@ -128,5 +136,6 @@ private:
 	HRESULT _setupBackBuffer();
 	HRESULT _setupDepthBuffer();
 	HRESULT _initScene();
+	float _getDistToTrans(XMMATRIX worldMatrix, XMFLOAT3 cameraPos);
 	bool _updateScene();
 };
