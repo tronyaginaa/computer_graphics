@@ -111,7 +111,7 @@ private:
 	ID3D11Texture2D* _pDepthBuffer = nullptr;
 	ID3D11DepthStencilView* _pDepthBufferDSV = nullptr;
 	ID3D11DepthStencilState* _pDepthState = nullptr;
-	ID3D11DepthStencilState* _pSkyboxDepthState = nullptr;
+	ID3D11DepthStencilState* _pZeroDepthState = nullptr;
 	  
 	ID3D11BlendState* _pBlendState = nullptr;
 
