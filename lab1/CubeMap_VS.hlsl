@@ -1,8 +1,7 @@
 cbuffer SceneMatrixBuffer : register(b1)
 {
-
-float4x4 viewProjectionMatrix;
-float4 cameraPos;
+    float4x4 viewProjectionMatrix;
+    float4 cameraPos;
 };
 
 cbuffer WorldMatrixBuffer : register(b0)

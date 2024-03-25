@@ -69,5 +69,7 @@
     <None Include="VS.hlsl" />
     <None Include="CubeMap_PS.hlsl" />
     <None Include="CubeMap_VS.hlsl" />
+    <None Include="Transparent_PS.hlsl" />
+    <None Include="Transparent_VS.hlsl" />
   </ItemGroup>
 </Project>
