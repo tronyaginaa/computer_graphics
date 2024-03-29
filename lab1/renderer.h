@@ -23,6 +23,12 @@ struct WorldMatrixBuffer
 	XMMATRIX worldMatrix;
 };
 
+struct LightMatrixBuffer
+{
+	XMMATRIX worldMatrix;
+	XMFLOAT4 color;
+};
+
 struct ViewMatrixBuffer 
 {
 	XMMATRIX viewProjectionMatrix;
@@ -113,6 +119,15 @@ private:
 	ID3D11PixelShader* _pTPixelShader = nullptr;
 	ID3D11InputLayout* _pTInputLayout = nullptr;
 	ID3D11Buffer* _pTWorldMatrixBuffer[2] = { nullptr, nullptr };
+
+
+	ID3D11Buffer* _pLightIndexBuffer = nullptr;
+	ID3D11Buffer* _pLightVertexBuffer = nullptr;
+	ID3D11VertexShader* _pLightVertexShader = nullptr;
+	ID3D11PixelShader* _pLightPixelShader = nullptr;
+	ID3D11InputLayout* _pLightInputLayout = nullptr;
+	ID3D11Buffer* _pLightWorldMatrixBuffer = nullptr;
+	ID3D11Buffer* _pLightViewMatrixBuffer = nullptr;
 	
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
 
@@ -131,7 +146,7 @@ private:
 	POINT _prevMousePos;
 
 	UINT _numSphereTriangles = 0.0;
-	float _radius = 1.0;
+	float _radius = 0.2;
 
 	HRESULT _setupBackBuffer();
 	HRESULT _setupDepthBuffer();
