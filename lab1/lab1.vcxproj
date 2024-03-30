@@ -118,7 +118,8 @@
       <AdditionalDependencies>dinput8.lib;dxguid.lib;d3d11.lib;dxgi.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)cot.dds" "$(OutDir)cot.dds"
+      <Command>copy "$(ProjectDir)kisa.dds" "$(OutDir)kisa.dds"
+copy "$(ProjectDir)242_norm.dds" "$(OutDir)242_norm.dds"
 copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -139,12 +140,14 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
       <AdditionalDependencies>dinput8.lib;dxguid.lib;d3d11.lib;dxgi.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)cot.dds" "$(OutDir)cot.dds"
+      <Command>copy "$(ProjectDir)kisa.dds" "$(OutDir)kisa.dds"
+copy "$(ProjectDir)242_norm.dds" "$(OutDir)242_norm.dds"
 copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="D3DInclude.h" />
     <ClInclude Include="DDSTextureLoader11.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="lab1.h" />
@@ -166,6 +169,10 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ColorCalc.hlsli">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
     <None Include="PS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
@@ -173,6 +180,10 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+    <None Include="Scene.hlsli">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </None>
     <None Include="VS.hlsl">
@@ -216,6 +227,28 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Light_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+    <None Include="Light_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
