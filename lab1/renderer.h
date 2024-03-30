@@ -18,52 +18,66 @@ if (p != NULL) { \
     p = NULL;\
 }
 
+struct TexVertex
+{
+	XMFLOAT3 pos;
+	XMFLOAT2 uv;
+	XMFLOAT3 normal;
+	XMFLOAT3 tangent;
+};
+
 struct WorldMatrixBuffer 
 {
 	XMMATRIX worldMatrix;
+	XMFLOAT4 shine;
 };
 
-struct LightMatrixBuffer
+struct ColoredObjMatrixBuffer
 {
 	XMMATRIX worldMatrix;
+	XMFLOAT4 color;
+};
+
+struct Light 
+{
+	XMFLOAT4 pos;
 	XMFLOAT4 color;
 };
 
 struct ViewMatrixBuffer 
 {
 	XMMATRIX viewProjectionMatrix;
+	XMFLOAT4 cameraPos;
+	XMINT4 lightParams;
+	Light lights[4];
+	XMFLOAT4 ambientColor;
 };
 
-struct Vertex 
+
+struct SkyboxWorldMatrixBuffer 
 {
-	float x, y, z;
-	float u, v;
-};
-
-struct SkyboxWorldMatrixBuffer {
 	XMMATRIX worldMatrix;
 	XMFLOAT4 size;
 };
 
-struct SkyboxViewMatrixBuffer {
+
+struct SkyboxViewMatrixBuffer 
+{
 	XMMATRIX viewProjectionMatrix;
 	XMFLOAT4 cameraPos;
 };
 
-struct SkyboxVertex {
+
+struct SphereVertex
+{
 	float x, y, z;
 };
 
-struct TransparentVertex {
-	float x, y, z;
-	COLORREF color;
-};
 
-
-static const TransparentVertex TransVertices[] = {
-	 {0, -2.5, -2.5, RGB(0, 0, 255)},
-	 {0,  2.5, 0, RGB(0, 255, 0)},
-	 {0,  -2.5,  2.5, RGB(255, 0, 0)}
+static const XMFLOAT4 TransVertices[] = {
+	 {0, -2.5, -2.5, 1.0},
+	 {0,  2.5, 0, 1.0},
+	 {0,  -2.5,  2.5, 1.0}
 };
 
 class Renderer 
@@ -98,6 +112,7 @@ private:
 	ID3D11PixelShader* _pPixelShader = nullptr;
 	ID3D11InputLayout* _pInputLayout = nullptr;
 	ID3D11ShaderResourceView* _pTexture = nullptr;
+	ID3D11ShaderResourceView* _pNormTexture = nullptr;
 	ID3D11Buffer* _pWorldMatrixBuffer[2] = { nullptr, nullptr };
 	ID3D11Buffer* _pViewMatrixBuffer = nullptr;
 
@@ -126,7 +141,7 @@ private:
 	ID3D11VertexShader* _pLightVertexShader = nullptr;
 	ID3D11PixelShader* _pLightPixelShader = nullptr;
 	ID3D11InputLayout* _pLightInputLayout = nullptr;
-	ID3D11Buffer* _pLightWorldMatrixBuffer = nullptr;
+	ID3D11Buffer* _pLightWorldMatrixBuffer[4] = { nullptr, nullptr, nullptr, nullptr };
 	ID3D11Buffer* _pLightViewMatrixBuffer = nullptr;
 	
 	ID3D11RasterizerState* _pRasterizerState = nullptr;
@@ -140,7 +155,7 @@ private:
 
 	Camera* _pCamera = nullptr;
 	ID3D11SamplerState* _pSampler = nullptr;
-	WorldMatrixBuffer _TWorld[2];
+	ColoredObjMatrixBuffer _TWorld[2];
 
 	bool _mouseButtonPressed = false;
 	POINT _prevMousePos;
@@ -148,9 +163,45 @@ private:
 	UINT _numSphereTriangles = 0.0;
 	float _radius = 0.2;
 
+	std::vector<Light> _pLight;
+
 	HRESULT _setupBackBuffer();
 	HRESULT _setupDepthBuffer();
 	HRESULT _initScene();
 	float _getDistToTrans(XMMATRIX worldMatrix, XMFLOAT3 cameraPos);
 	bool _updateScene();
+};
+
+class D3DInclude : public ID3DInclude
+{
+	STDMETHOD(Open)(THIS_ D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName,
+		LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes)
+	{
+		FILE* pFile = nullptr;
+		fopen_s(&pFile, pFileName, "rb");
+		assert(pFile != nullptr);
+		if (pFile == nullptr)
+		{
+			return E_FAIL;
+		}
+
+		_fseeki64(pFile, 0, SEEK_END);
+		long long size = _ftelli64(pFile);
+		_fseeki64(pFile, 0, SEEK_SET);
+
+		char* pData = new char[size + 1];
+
+		size_t rd = fread(pData, 1, size, pFile);
+		assert(rd == (size_t)size);
+		fclose(pFile);
+
+		*ppData = pData;
+		*pBytes = (UINT)size;
+		return S_OK;
+	}
+	STDMETHOD(Close)(THIS_ LPCVOID pData)
+	{
+		free(const_cast<void*>(pData));
+		return S_OK;
+	}
 };
