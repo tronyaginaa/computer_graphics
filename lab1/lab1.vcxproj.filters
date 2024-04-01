@@ -36,6 +36,9 @@
     <ClInclude Include="DDSTextureLoader11.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="D3DInclude.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lab1.cpp">
@@ -71,5 +74,9 @@
     <None Include="CubeMap_VS.hlsl" />
     <None Include="Transparent_PS.hlsl" />
     <None Include="Transparent_VS.hlsl" />
+    <None Include="ColorCalc.hlsli" />
+    <None Include="Scene.hlsli" />
+    <None Include="Light_PS.hlsl" />
+    <None Include="Light_VS.hlsl" />
   </ItemGroup>
 </Project>
