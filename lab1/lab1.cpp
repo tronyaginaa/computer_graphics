@@ -170,6 +170,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         g_renderer->MouseMoved(wParam, lParam);
         break;
 
+    case WM_KEYDOWN:
+        if (wParam == VK_UP) {
+            g_renderer->KeyDown(-1);
+        }
+        if (wParam == VK_DOWN) {
+            g_renderer->KeyDown(1);
+        }
+        
+        break;
+
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

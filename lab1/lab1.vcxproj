@@ -147,6 +147,7 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="constants.h" />
     <ClInclude Include="D3DInclude.h" />
     <ClInclude Include="DDSTextureLoader11.h" />
     <ClInclude Include="framework.h" />
@@ -173,6 +174,8 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </None>
+    <None Include="Cube.hlsli" />
+    <None Include="Light.hlsli" />
     <None Include="PS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ps</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>

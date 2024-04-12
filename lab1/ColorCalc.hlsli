@@ -9,7 +9,6 @@ float3 CalculateColor(in float3 objColor, in float3 objNormal, in float3 pos, in
         return float3(objNormal * 0.5 + float3(0.5, 0.5, 0.5));
     }
 
-    [unroll]
     for (int i = 0; i < lightParams.x; i++)
     {
         float3 norm = objNormal;

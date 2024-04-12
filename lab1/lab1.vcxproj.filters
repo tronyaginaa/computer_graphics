@@ -39,6 +39,9 @@
     <ClInclude Include="D3DInclude.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="constants.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lab1.cpp">
@@ -78,5 +81,7 @@
     <None Include="Scene.hlsli" />
     <None Include="Light_PS.hlsl" />
     <None Include="Light_VS.hlsl" />
+    <None Include="Light.hlsli" />
+    <None Include="Cube.hlsli" />
   </ItemGroup>
 </Project>
