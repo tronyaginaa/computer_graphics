@@ -120,7 +120,9 @@
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)kisa.dds" "$(OutDir)kisa.dds"
 copy "$(ProjectDir)242_norm.dds" "$(OutDir)242_norm.dds"
-copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
+copy "$(ProjectDir)242.dds" "$(OutDir)242.dds"
+copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"
+copy "$(ProjectDir)constants.h" "$(OutDir)constants.h"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,11 +144,14 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)kisa.dds" "$(OutDir)kisa.dds"
 copy "$(ProjectDir)242_norm.dds" "$(OutDir)242_norm.dds"
-copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
+copy "$(ProjectDir)242.dds" "$(OutDir)242.dds"
+copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"
+copy "$(ProjectDir)constants.h" "$(OutDir)constants.h"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="constants.h" />
     <ClInclude Include="D3DInclude.h" />
     <ClInclude Include="DDSTextureLoader11.h" />
     <ClInclude Include="framework.h" />
@@ -170,6 +175,14 @@ copy "$(ProjectDir)skybox.dds" "$(OutDir)skybox.dds"</Command>
   </ItemGroup>
   <ItemGroup>
     <None Include="ColorCalc.hlsli">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+    <None Include="Cube.hlsli">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+    <None Include="Light.hlsli">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
     </None>
