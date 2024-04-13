@@ -1,15 +1,15 @@
 #include "camera.h"
 
-Camera::Camera() 
+Camera::Camera()
 {
     _center = XMFLOAT3(0.0f, 0.0f, 0.0f);
-    _r = 7.0f;
+    _r = 4.0f;
     _theta = XM_PIDIV4;
     _phi = -XM_PIDIV4;
     _updateViewMatrix();
 }
 
-XMFLOAT3 Camera::GetPos() 
+XMFLOAT3 Camera::GetPos()
 {
     XMFLOAT3 pos = XMFLOAT3(cosf(_theta) * cosf(_phi), sinf(_theta), cosf(_theta) * sinf(_phi));
     pos.x = pos.x * _r + _center.x;
@@ -19,7 +19,7 @@ XMFLOAT3 Camera::GetPos()
     return pos;
 }
 
-void Camera::ChangePos(float dphi, float dtheta) 
+void Camera::ChangePos(float dphi, float dtheta)
 {
     _phi -= dphi;
     _theta += dtheta;
@@ -27,7 +27,18 @@ void Camera::ChangePos(float dphi, float dtheta)
     _updateViewMatrix();
 }
 
-void Camera::_updateViewMatrix() 
+void Camera::Zoom(float param)
+{
+    _r += param;
+    if (_r < 2.f)
+        _r = 2.f;
+    if (_r > 25.f)
+        _r = 25.f;
+
+    _updateViewMatrix();
+}
+
+void Camera::_updateViewMatrix()
 {
     XMFLOAT3 pos = GetPos();
     float upTheta = _theta + XM_PIDIV2;

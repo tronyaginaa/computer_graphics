@@ -4,11 +4,12 @@
 
 using namespace DirectX;
 
-class Camera 
+class Camera
 {
 public:
     Camera();
     void ChangePos(float dphi, float dtheta);
+    void Zoom(float param);
     XMFLOAT3 GetPos();
     XMMATRIX& GetViewMatrix() { return _viewMatrix; };
 private:

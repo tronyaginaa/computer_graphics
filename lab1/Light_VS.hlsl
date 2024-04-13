@@ -1,29 +1,25 @@
-cbuffer WorldMatrixBuffer : register(b0)
-{
-    float4x4 worldMatrix;
-    float4 color;
-};
-
-cbuffer SceneMatrixBuffer : register(b1)
-{
-    float4x4 viewProjectionMatrix;
-};
+#include "Light.hlsli"
 
 struct VS_INPUT
 {
     float4 position : POSITION;
+    uint instanceId : SV_InstanceID;
 };
 
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
+    uint instanceId : SV_InstanceID;
 };
 
 PS_INPUT main(VS_INPUT input)
 {
     PS_INPUT output;
+    
+    unsigned int idx = input.instanceId;
+    output.instanceId = idx;
 
-    output.position = mul(viewProjectionMatrix, mul(worldMatrix, input.position));
+    output.position = mul(viewProjectionMatrix, mul(lightsGeomBuffer[idx].worldMatrix, input.position));
 
     return output;
 }
